@@ -1,6 +1,7 @@
 package ru.practicum.kobozevva.blog.service;
 
 import ru.practicum.kobozevva.blog.model.Post;
+import ru.practicum.kobozevva.blog.model.Tag;
 
 import java.util.List;
 
