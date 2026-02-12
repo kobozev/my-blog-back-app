@@ -79,8 +79,8 @@ public class JdbcPostRepository implements PostRepository {
                         p.updated_at
                     FROM posts p
                     WHERE
-                        to_tsvector('simple', p.title || ' ' || p.text)
-                        @@ plainto_tsquery('simple', ?)
+                        LOWER(p.title) LIKE LOWER(CONCAT('%', ?, '%'))
+                        OR LOWER(p.text) LIKE LOWER(CONCAT('%', ?, '%'))
                     ORDER BY p.created_at DESC
                     LIMIT ? OFFSET ?
                 """;
@@ -88,6 +88,7 @@ public class JdbcPostRepository implements PostRepository {
         List<Post> posts = jdbcTemplate.query(
                 sql,
                 postRowMapper,
+                search,
                 search,
                 pageSize,
                 offset
@@ -103,11 +104,11 @@ public class JdbcPostRepository implements PostRepository {
                     SELECT count(*)
                     FROM posts
                     WHERE
-                        to_tsvector('simple', title || ' ' || text)
-                        @@ plainto_tsquery('simple', ?)
+                        LOWER(title) LIKE LOWER(CONCAT('%', ?, '%'))
+                        OR LOWER(text) LIKE LOWER(CONCAT('%', ?, '%'))
                 """;
 
-        return jdbcTemplate.queryForObject(sql, Integer.class, search);
+        return jdbcTemplate.queryForObject(sql, Integer.class, search, search);
     }
 
     @Override

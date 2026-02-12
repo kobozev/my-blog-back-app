@@ -31,7 +31,7 @@ dependencies {
     implementation("org.springframework:spring-tx:6.2.14")
 
     // PostgreSQL
-    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.postgresql:postgresql:42.7.7")
 
     // Servlet API (provided by container)
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
@@ -42,11 +42,27 @@ dependencies {
 
     // Logging
     implementation("org.slf4j:slf4j-api:2.0.16")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.13")
 
     // Tests
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.0")
     testImplementation("org.springframework:spring-test:6.2.14")
+    testImplementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
+
+    // Mockito
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.12.0")
+
+    // H2
+    testImplementation("com.h2database:h2:2.3.232")
+
+    // Hamcrest
+    testImplementation("org.hamcrest:hamcrest:2.2")
+
+    // JsonPath
+    testImplementation("com.jayway.jsonpath:json-path:2.9.0")
 }
 
 tasks.test {
