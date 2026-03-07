@@ -1,19 +1,13 @@
 package ru.practicum.kobozevva.blog.repository;
 
+import org.springframework.data.repository.CrudRepository;
 import ru.practicum.kobozevva.blog.model.Comment;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-public interface CommentRepository {
+public interface CommentRepository extends CrudRepository<Comment, Long>, CommentRepositoryCustom {
+    long countByPostId(Long postId);
 
-    List<Comment> findByPostId(long postId);
-
-    Optional<Comment> findById(long postId, long commentId);
-
-    Comment save(Comment comment);
-
-    Comment update(Comment comment);
-
-    void delete(long postId, long commentId);
+    List<Comment> findAllByPostId(Long postId);
 }
