@@ -2,11 +2,9 @@
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/configuration/WebConfiguration.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/controller/CommentController.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/controller/PostController.java
-/Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/controller/advice/GlobalExceptionHandler.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/comment/CommentDto.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/comment/NewCommentDto.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/comment/UpdateCommentDto.java
-/Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/error/ErrorResponseDto.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/post/NewPostDto.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/post/PostDto.java
 /Users/vasiliy.kobozev/git/practicum/my-blog-back-app/src/main/java/ru/practicum/kobozevva/blog/dto/post/PostPreviewDto.java
