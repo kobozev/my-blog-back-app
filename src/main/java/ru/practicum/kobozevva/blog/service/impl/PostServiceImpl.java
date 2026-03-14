@@ -111,6 +111,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deletePostById(Long postId) {
+        checkAndGetPostById(postId);
         postRepository.deleteById(postId);
         log.info("Post is deleted by id: {}", postId);
     }
