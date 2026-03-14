@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.kobozevva.blog.dto.comment.CommentDto;
 import ru.practicum.kobozevva.blog.dto.comment.NewCommentDto;
 import ru.practicum.kobozevva.blog.dto.comment.UpdateCommentDto;
+import ru.practicum.kobozevva.blog.exception.CommentNotFoundException;
+import ru.practicum.kobozevva.blog.exception.PostNotFoundException;
 import ru.practicum.kobozevva.blog.mapper.CommentMapper;
 import ru.practicum.kobozevva.blog.model.Comment;
 import ru.practicum.kobozevva.blog.repository.CommentRepository;
@@ -85,19 +87,17 @@ public class CommentServiceImpl implements CommentService {
 
     private void checkPostExistsById(Long postId) {
         if (!postRepository.existsById(postId))
-            throw new RuntimeException("Post doesn't exist with id: %s".formatted(postId));
+            throw new PostNotFoundException(postId);
     }
 
     private Comment checkAndGetCommentByPostIdAndId(Long postId, Long commentId) {
-        // TODO: проверка отключена из-за ошибки на frontend. При редактировании комментария неверный postId в path.
-//        checkPostExistsById(postId);
+        checkPostExistsById(postId);
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment doesn't exist with id: %s".formatted(commentId)));
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
 
-        // TODO: проверка отключена из-за ошибки на frontend. При редактировании комментария неверный postId в path.
-//        if (!Objects.equals(postId, comment.getPostId()))
-//            throw new IllegalArgumentException("PostId from path doesn't match postId in comment");
+        if (!Objects.equals(postId, comment.getPostId()))
+            throw new IllegalArgumentException("PostId from path + " + postId + " doesn't match postId in comment " + comment.getPostId());
 
         return comment;
     }

@@ -2,7 +2,6 @@ package ru.practicum.kobozevva.blog.service.impl;
 
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -13,6 +12,8 @@ import ru.practicum.kobozevva.blog.dto.post.PostDto;
 import ru.practicum.kobozevva.blog.dto.post.PostPreviewDto;
 import ru.practicum.kobozevva.blog.dto.post.PostsDto;
 import ru.practicum.kobozevva.blog.dto.post.UpdatePostDto;
+import ru.practicum.kobozevva.blog.exception.ImageProcessingException;
+import ru.practicum.kobozevva.blog.exception.PostNotFoundException;
 import ru.practicum.kobozevva.blog.mapper.PostMapper;
 import ru.practicum.kobozevva.blog.model.Post;
 import ru.practicum.kobozevva.blog.model.PostImage;
@@ -22,6 +23,7 @@ import ru.practicum.kobozevva.blog.repository.PostRepository;
 import ru.practicum.kobozevva.blog.repository.TagRepository;
 import ru.practicum.kobozevva.blog.service.PostService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -126,16 +128,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @SneakyThrows
     @Transactional
     public void updatePostImage(Long postId, MultipartFile imageFile) {
         checkAndGetPostById(postId);
+
+        if (imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is empty");
+        }
 
         PostImage postImage = postImageRepository.findByPostId(postId)
                 .orElse(PostImage.builder()
                         .postId(postId)
                         .build());
-        postImage.setImageData(imageFile.getBytes());
+
+        try {
+            postImage.setImageData(imageFile.getBytes());
+        } catch (IOException e) {
+            throw new ImageProcessingException("Failed to process post image", e);
+        }
 
         postImage = postImageRepository.save(postImage);
         log.info("Image with id {} is saved for post with id {}", postImage.getId(), postImage.getPostId());
@@ -171,6 +181,6 @@ public class PostServiceImpl implements PostService {
 
     private Post checkAndGetPostById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post doesn't exist with id: %s".formatted(postId)));
+                .orElseThrow(() -> new PostNotFoundException(postId));
     }
 }
