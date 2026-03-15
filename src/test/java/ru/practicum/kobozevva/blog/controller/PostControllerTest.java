@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 )
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class PostControllerTest {
+class PostControllerTest extends BaseIntegrationTest {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -38,8 +38,8 @@ class PostControllerTest {
 
     @BeforeEach
     void setup() {
-        jdbc.update("DELETE FROM \"posts\"", Collections.emptyMap());
-        jdbc.update("DELETE FROM \"tags\"", Collections.emptyMap());
+        jdbc.update("DELETE FROM posts", Collections.emptyMap());
+        jdbc.update("DELETE FROM tags", Collections.emptyMap());
     }
 
     @Test
