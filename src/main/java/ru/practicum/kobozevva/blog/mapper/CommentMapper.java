@@ -1,37 +1,24 @@
 package ru.practicum.kobozevva.blog.mapper;
 
-import org.springframework.stereotype.Component;
-import ru.practicum.kobozevva.blog.dto.request.CommentCreateRequestDto;
-import ru.practicum.kobozevva.blog.dto.request.CommentUpdateRequestDto;
-import ru.practicum.kobozevva.blog.dto.response.CommentResponseDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import ru.practicum.kobozevva.blog.dto.comment.CommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.NewCommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.UpdateCommentDto;
 import ru.practicum.kobozevva.blog.model.Comment;
 
-@Component
-public final class CommentMapper {
+import java.util.List;
 
-    private CommentMapper() {
-    }
+@Mapper
+public interface CommentMapper {
+    CommentDto toDto(Comment comment);
 
-    public CommentResponseDto toResponse(Comment comment) {
-        return new CommentResponseDto(
-                comment.getId(),
-                comment.getText(),
-                comment.getPostId()
-        );
-    }
+    List<CommentDto> toDto(List<Comment> comments);
 
-    public Comment fromCreateRequest(CommentCreateRequestDto request) {
-        Comment comment = new Comment();
-        comment.setPostId(request.postId());
-        comment.setText(request.text());
-        return comment;
-    }
+    @Mapping(target = "id", ignore = true)
+    Comment update(@MappingTarget Comment comment, UpdateCommentDto updateCommentDto);
 
-    public Comment fromUpdateRequest(CommentUpdateRequestDto request) {
-        Comment comment = new Comment();
-        comment.setId(request.id());
-        comment.setPostId(request.postId());
-        comment.setText(request.text());
-        return comment;
-    }
+    @Mapping(target = "id", ignore = true)
+    Comment toEntity(NewCommentDto newCommentDto);
 }

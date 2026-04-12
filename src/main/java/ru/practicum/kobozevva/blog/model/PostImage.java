@@ -1,34 +1,22 @@
 package ru.practicum.kobozevva.blog.model;
 
-import java.time.OffsetDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
+@Data
+@Table("post_images")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class PostImage {
+    @Id
+    private Long id;
 
-    private final Long postId;
-    private final byte[] image;
-    private final String contentType;
-    private final OffsetDateTime updatedAt;
+    private Long postId;
 
-    public PostImage(Long postId, byte[] image, String contentType, OffsetDateTime updatedAt) {
-        this.postId = postId;
-        this.image = image;
-        this.contentType = contentType;
-        this.updatedAt = updatedAt;
-    }
-
-    public Long getPostId() {
-        return postId;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+    private byte[] imageData;
 }

@@ -1,18 +1,19 @@
 package ru.practicum.kobozevva.blog.service;
 
-import ru.practicum.kobozevva.blog.model.Comment;
+import ru.practicum.kobozevva.blog.dto.comment.CommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.NewCommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.UpdateCommentDto;
 
 import java.util.List;
 
 public interface CommentService {
+    CommentDto createComment(Long postId, NewCommentDto newCommentDto);
 
-    List<Comment> getCommentsByPost(long postId);
+    CommentDto getCommentById(Long postId, Long commentId);
 
-    Comment getComment(long postId, long commentId);
+    List<CommentDto> findComments(Long postId);
 
-    Comment createComment(long postId, String text);
+    CommentDto updateComment(Long postId, Long commentId, UpdateCommentDto updateCommentDto);
 
-    Comment updateComment(long postId, long commentId, String text);
-
-    void deleteComment(long postId, long commentId);
+    void deleteCommentById(Long postId, Long commentId);
 }

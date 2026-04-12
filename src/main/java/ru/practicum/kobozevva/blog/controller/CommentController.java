@@ -1,121 +1,61 @@
 package ru.practicum.kobozevva.blog.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import ru.practicum.kobozevva.blog.dto.request.CommentCreateRequestDto;
-import ru.practicum.kobozevva.blog.dto.request.CommentUpdateRequestDto;
-import ru.practicum.kobozevva.blog.dto.response.CommentResponseDto;
-import ru.practicum.kobozevva.blog.mapper.CommentMapper;
-import ru.practicum.kobozevva.blog.model.Comment;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.kobozevva.blog.dto.comment.CommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.NewCommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.UpdateCommentDto;
 import ru.practicum.kobozevva.blog.service.CommentService;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/posts/{postId}/comments")
 public class CommentController {
-
     private final CommentService commentService;
-    private final CommentMapper commentMapper;
-    private static final Logger log =
-            LoggerFactory.getLogger(CommentController.class);
 
-    public CommentController(CommentService commentService,
-                             CommentMapper commentMapper) {
-        this.commentService = commentService;
-        this.commentMapper = commentMapper;
-    }
-
-    // GET /api/posts/{postId}/comments
-    @GetMapping
-    public List<CommentResponseDto> getComments(@PathVariable long postId) {
-        log.debug("HTTP GET /api/posts/{}/comments", postId);
-
-        List<CommentResponseDto> comments = commentService.getCommentsByPost(postId).stream()
-                .map(commentMapper::toResponse)
-                .toList();
-        log.debug("Post id={} comments -> found={}", postId, comments.size());
-
-        return comments;
-    }
-
-     // GET /api/posts/{postId}/comments/{commentId}
-    @GetMapping("/{commentId}")
-    public CommentResponseDto getComment(@PathVariable long postId,
-                                         @PathVariable long commentId) {
-
-        log.debug("GET /api/posts/{}/comments/{}", postId, commentId);
-
-        Comment comment = commentService.getComment(postId, commentId);
-
-        log.debug(
-                "Comment id={} for postId={} -> textLength={}",
-                postId,
-                commentId,
-                comment.getText() != null ? comment.getText().length() : 0
-        );
-
-        return commentMapper.toResponse(comment);
-    }
-
-    // POST /api/posts/{postId}/comments
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CommentResponseDto createComment(@PathVariable long postId,
-                                            @RequestBody CommentCreateRequestDto request) {
-        if (request == null || request.text() == null || request.text().isBlank()) {
-            throw new IllegalArgumentException("Comment text must not be empty");
-        }
-
-        log.debug(
-                "POST /api/posts/{}/comments textLength={}",
-                postId,
-                request.text().length()
-        );
-
-        Comment created = commentService.createComment(postId, request.text());
-
-        log.debug("Comment id={} for postId={} created", created.getId(), created.getPostId());
-
-        return commentMapper.toResponse(created);
+    public CommentDto createComment(@PathVariable("postId") Long postId,
+                                    @Valid @RequestBody NewCommentDto newCommentDto) {
+        log.info("POST /api/posts/{postId}/comments with params(postId {}, newCommentDto {})", postId, newCommentDto);
+        return commentService.createComment(postId, newCommentDto);
     }
 
-    // PUT /api/posts/{postId}/comments/{commentId}
-    @PutMapping("/{commentId}")
-    public CommentResponseDto updateComment(@PathVariable long postId,
-                                            @PathVariable long commentId,
-                                            @RequestBody CommentUpdateRequestDto request) {
-        if (request ==null || request.text() == null || request.text().isBlank()) {
-            throw new IllegalArgumentException("Comment text must not be empty");
-        }
-
-        log.debug(
-                "PUT /api/posts/{postId}/comments/{commentId} textLength={}",
-                postId,
-                request.text().length()
-        );
-
-        Comment updated = commentService.updateComment(postId, commentId, request.text());
-
-        log.debug("Comment id={} for postId={} updated", updated.getId(), updated.getPostId());
-
-        return commentMapper.toResponse(updated);
+    @GetMapping("/{id}")
+    public CommentDto getCommentById(@PathVariable("postId") Long postId, @PathVariable("id") Long commentId) {
+        log.info("GET /api/posts/{postId}/comments/{id} with params(postId {}, id {})", postId, commentId);
+        return commentService.getCommentById(postId, commentId);
     }
 
-     // DELETE /api/posts/{postId}/comments/{commentId}
-    @DeleteMapping("/{commentId}")
-    @ResponseStatus(HttpStatus.OK)
-    public void deleteComment(@PathVariable long postId,
-                              @PathVariable long commentId) {
-        log.debug("DELETE /api/posts/{}/comments/{}", postId, commentId);
+    @GetMapping
+    public List<CommentDto> findComments(@PathVariable("postId") Long postId) {
+        log.info("GET /api/posts/{postId}/comments with params(postId {})", postId);
+        return commentService.findComments(postId);
+    }
 
-        commentService.deleteComment(postId, commentId);
+    @PutMapping("/{id}")
+    public CommentDto updateComment(@PathVariable("postId") Long postId,
+                                    @PathVariable("id") Long commentId,
+                                    @Valid @RequestBody UpdateCommentDto updateCommentDto) {
+        log.info("PUT /api/posts/{postId}/comments/{id} with params(postId {}, id {}, updateCommentDto {})",
+                postId, commentId, updateCommentDto);
+        return commentService.updateComment(postId, commentId, updateCommentDto);
+    }
 
-        log.debug("Comment id={} for postId={} deleted", postId, commentId);
+    @DeleteMapping("/{id}")
+    public void deleteCommentById(@PathVariable("postId") Long postId, @PathVariable("id") Long commentId) {
+        log.info("DELETE /api/posts/{postId}/comments/{id} with params(postId {}, id {})", postId, commentId);
+        commentService.deleteCommentById(postId, commentId);
     }
 }

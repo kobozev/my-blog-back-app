@@ -1,56 +1,31 @@
 package ru.practicum.kobozevva.blog.mapper;
 
-import org.springframework.stereotype.Component;
-import ru.practicum.kobozevva.blog.dto.request.PostCreateRequestDto;
-import ru.practicum.kobozevva.blog.dto.request.PostUpdateRequestDto;
-import ru.practicum.kobozevva.blog.dto.response.PostResponseDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import ru.practicum.kobozevva.blog.dto.post.NewPostDto;
+import ru.practicum.kobozevva.blog.dto.post.PostDto;
+import ru.practicum.kobozevva.blog.dto.post.PostPreviewDto;
+import ru.practicum.kobozevva.blog.dto.post.UpdatePostDto;
 import ru.practicum.kobozevva.blog.model.Post;
-import ru.practicum.kobozevva.blog.model.Tag;
 
 import java.util.List;
 
-@Component
-public final class PostMapper {
+@Mapper
+public interface PostMapper {
+    PostDto toDto(Post post, Long commentsCount, List<String> tags);
 
-    private PostMapper() {
-    }
+    @Mapping(target = "tags", ignore = true)
+    @Mapping(target = "commentsCount", ignore = true)
+    PostPreviewDto toPreviewDto(Post post);
 
-    public PostResponseDto toResponse(Post post) {
-        return new PostResponseDto(
-                post.getId(),
-                post.getTitle(),
-                post.getText(),
-                toTagNames(post.getTags()),
-                post.getLikesCount(),
-                post.getCommentsCount()
-        );
-    }
+    List<PostPreviewDto> toPreviewDto(List<Post> posts);
 
-    public Post fromCreateRequest(PostCreateRequestDto request) {
-        Post post = new Post();
-        post.setTitle(request.title());
-        post.setText(request.text());
-//        post.setTags(null);
-        post.setLikesCount(0);
-        post.setCommentsCount(0);
-        return post;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "likesCount", ignore = true)
+    Post update(@MappingTarget Post post, UpdatePostDto updatePostDto);
 
-    public Post fromUpdateRequest(PostUpdateRequestDto request) {
-        Post post = new Post();
-        post.setId(request.id());
-        post.setTitle(request.title());
-        post.setText(request.text());
-//        post.setTags(null);
-        return post;
-    }
-
-    private List<String> toTagNames(List<Tag> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return List.of();
-        }
-        return tags.stream()
-                .map(Tag::getName)
-                .toList();
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "likesCount", ignore = true)
+    Post toEntity(NewPostDto newPostDto);
 }

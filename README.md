@@ -1,18 +1,14 @@
 # Блог - Backend
 
-Бэкенд приложения-блога, реализованный на Java 21 с использованием Spring Framework 6.2 (без Spring Boot) и работающий в сервлет-контейнере Tomcat.
-В качестве базы данных используется PostgreSQL 18. 
-Бэкенд покрыт тестами (Unit и интеграционными) с использованием JUnit 5, TestContext Framework.
+Бэкенд приложения-блога, реализованный на Java 21 с использованием Spring Boot, Spring Data JDBC и БД PostgreSQL. 
 
 ## Стек технологий
 
-- **Фреймворк**: Spring MVC 6.2.14
-- **База данных**: PostgreSQL 18 (продакшн), H2 2.3.232 (тестирование)
+- **Фреймворк**: Spring Boot 3.5.10
+- **База данных**: PostgreSQL 18
 - **Java**: 21
-- **Система сборки**: Gradle 9.2.1 (Kotlin DSL)
-- **Тестирование**: JUnit 5, Spring Test, MockMvc
-- **JSON**: Jackson с JavaTimeModule
-- **Сервер**: Apache Tomcat (развертывание через WAR)
+- **Система сборки**: Maven
+- **Тестирование**: JUnit 5, Spring Boot Test, MockMvc, TestContainers (PostgreSQLContainer).
 
 ## Сборка и запуск приложения
 
@@ -30,147 +26,60 @@
 Проект использует **PostgreSQL** как основную базу данных для продакшн:
 `spring.datasource.driverClassName=org.postgresql.Driver`
 
-Настройка по умолчанию подразумевает наличие запущенного PostgreSQL на порту 5432 и созданной БД blog_db с необходимой для работы учетной записью для работы бэкенда с полномочиями на создание объектов в данной БД:  
+Настройка для продакшн по умолчанию подразумевает наличие запущенного PostgreSQL на порту 5432 и созданной БД blog_db с необходимой для работы учетной записью для работы бэкенда с полномочиями на создание объектов в данной БД:  
 `spring.datasource.url=jdbc:postgresql://localhost:5432/blog_db`
 
 Инициализация схемы БД (создание таблиц, индексов и т.п.) выполнится автоматически при первом запуске приложения.
 
 ### 2. Сборка приложения
-Требуется **JDK 21** и **Gradle 9.2** (или другая совместимая версии).
+Проект можно собрать с помощью Maven:
 
 ```bash
-./gradlew clean build
+mvn clean package
 ```
 
-### 3. Запуск тестов
+Итоговый артефакт (executable fat jar) будет в папке "target/". 
+Имя артефакта `my-blog-back-app-1.0.0.jar`.
+
+### 3. Запуск приложения
+Для запуска приложения достаточно запустить main метод в SpringBootBlogApplication классе или выполнить команду
 
 ```bash
-./gradlew test
+java -jar target/my-blog-back-app-1.0.0.jar
 ```
-Все тесты используют встроенную базу данных H2 и не требуют запущенного PostgreSQL.
 
-**Результаты тестов**: 29 пройденных тестов (100% успешных)
+После запуска API будет доступно по адресу:
+```
+http://localhost:8080/api/
+```
 
-### 4. Развертывание в Tomcat
+### 4. Тестирование приложения
+Проект использует TestContainers для запуска интеграционных тестов с реальной базой данных PostgreSQL 18 в Docker-контейнере.
 
-Приложение собирается как WAR-файл для развертывания в Tomcat:
+Для успешного выполнения интеграционных тестов необходимо, чтобы на вашем компьютере был установлен и запущен Docker.
 
+Проверить, что Docker работает, можно командой:
 ```bash
-./gradlew war
-```
-WAR-файл будет создан в `build/libs/blog-backend.war`.
-
-Скопируйте WAR-файл из папки `build/libs`, переименуйте его в `ROOT.war` и переместите в папку `webapps` внутри корневой папки сервера Tomcat.
-
-При настройках по умолчанию Tomcat в `conf/server.xml` для localhost произойдет автоматическая распаковка и загрузка ROOT.war,
-и REST-ендпоинты станут доступны по "localhost:8080/":
-```xml
-<Host name="localhost"  appBase="webapps"
-   unpackWARs="true" autoDeploy="true">
-    ...
-</Host>
+docker ps
 ```
 
-При запуске автоматически запустится скрипт `src/main/resources/schema.sql` по созданию необходимых для работы объектов в БД, если объекты еще не были созданы.
-
-## Структура проекта
-
+Запуск всех тестов (включая интеграционные):
+```bash
+mvn clean test
 ```
-my-blog-back-app/
-├── README.md
-├── build.gradle.kts
-└── src
-    ├── main
-    │   ├── java
-    │   │   └── ru
-    │   │       └── practicum
-    │   │           └── kobozevva
-    │   │               └── blog
-    │   │                   ├── configuration
-    │   │                   │   ├── DataSourceConfiguration.java
-    │   │                   │   ├── MultipartConfiguration.java
-    │   │                   │   ├── RestConfiguration.java
-    │   │                   │   └── WebConfiguration.java
-    │   │                   ├── controller
-    │   │                   │   ├── CommentController.java
-    │   │                   │   ├── PostController.java
-    │   │                   │   └── advice
-    │   │                   │       └── GlobalExceptionHandler.java
-    │   │                   ├── dto
-    │   │                   │   ├── error
-    │   │                   │   │   └── ErrorResponseDto.java
-    │   │                   │   ├── request
-    │   │                   │   │   ├── CommentCreateRequestDto.java
-    │   │                   │   │   ├── CommentUpdateRequestDto.java
-    │   │                   │   │   ├── PostCreateRequestDto.java
-    │   │                   │   │   ├── PostListItemDto.java
-    │   │                   │   │   └── PostUpdateRequestDto.java
-    │   │                   │   └── response
-    │   │                   │       ├── CommentResponseDto.java
-    │   │                   │       ├── LikesCountResponseDto.java
-    │   │                   │       ├── PostListResponseDto.java
-    │   │                   │       └── PostResponseDto.java
-    │   │                   ├── mapper
-    │   │                   │   ├── CommentMapper.java
-    │   │                   │   └── PostMapper.java
-    │   │                   ├── model
-    │   │                   │   ├── Comment.java
-    │   │                   │   ├── Like.java
-    │   │                   │   ├── Post.java
-    │   │                   │   ├── PostImage.java
-    │   │                   │   └── Tag.java
-    │   │                   ├── repository
-    │   │                   │   ├── CommentRepository.java
-    │   │                   │   ├── PostImageRepository.java
-    │   │                   │   ├── PostRepository.java
-    │   │                   │   ├── TagRepository.java
-    │   │                   │   ├── extractor
-    │   │                   │   │   └── PostWithTagsExtractor.java
-    │   │                   │   ├── jdbc
-    │   │                   │   │   ├── JdbcCommentRepository.java
-    │   │                   │   │   ├── JdbcPostImageRepository.java
-    │   │                   │   │   ├── JdbcPostRepository.java
-    │   │                   │   │   └── JdbcTagRepository.java
-    │   │                   │   └── rowmapper
-    │   │                   │       ├── CommentRowMapper.java
-    │   │                   │       ├── PostImageRowMapper.java
-    │   │                   │       ├── PostRowMapper.java
-    │   │                   │       └── TagRowMapper.java
-    │   │                   └── service
-    │   │                       ├── CommentService.java
-    │   │                       ├── PostImageService.java
-    │   │                       ├── PostService.java
-    │   │                       ├── TagService.java
-    │   │                       └── impl
-    │   │                           ├── CommentServiceImpl.java
-    │   │                           ├── PostImageServiceImpl.java
-    │   │                           ├── PostServiceImpl.java
-    │   │                           └── TagServiceImpl.java
-    │   ├── resources
-    │   │   ├── application.properties
-    │   │   ├── logback.xml
-    │   │   └── schema.sql
-    │   └── webapp
-    │       └── WEB-INF
-    │           └── web.xml
-    └── test
-        ├── java
-        │   └── ru
-        │       └── practicum
-        │           └── kobozevva
-        │               └── blog
-        │                   ├── configuration
-        │                   │   ├── TestDataSourceConfiguration.java
-        │                   │   └── TestWebApplicationConfiguration.java
-        │                   ├── controller
-        │                   │   ├── CommentControllerIntegrationTest.java
-        │                   │   └── PostControllerIntegrationTest.java
-        │                   └── service
-        │                       └── impl
-        │                           ├── CommentServiceImplTest.java
-        │                           └── PostServiceImplTest.java
-        └── resources
-            ├── application-test.properties
-            ├── logback-test.xml
-            └── schema-test.sql
+
+Запуск конкретного тестового класса:
+```bash
+mvn test -Dtest=PostControllerTest
 ```
+
+Что происходит при запуске интеграционных тестов?
+* Testcontainers автоматически скачивает Docker-образ PostgreSQL (если его еще нет локально)
+
+* Запускает контейнер с PostgreSQL
+
+* Применяет скрипты инициализации схемы базы данных
+
+* Выполняет тесты
+
+* После завершения тестов контейнер автоматически останавливается и удаляется.

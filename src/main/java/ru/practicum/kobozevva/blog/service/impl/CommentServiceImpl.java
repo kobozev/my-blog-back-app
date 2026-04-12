@@ -1,95 +1,104 @@
 package ru.practicum.kobozevva.blog.service.impl;
 
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.kobozevva.blog.dto.comment.CommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.NewCommentDto;
+import ru.practicum.kobozevva.blog.dto.comment.UpdateCommentDto;
+import ru.practicum.kobozevva.blog.exception.CommentNotFoundException;
+import ru.practicum.kobozevva.blog.exception.PostNotFoundException;
+import ru.practicum.kobozevva.blog.mapper.CommentMapper;
 import ru.practicum.kobozevva.blog.model.Comment;
 import ru.practicum.kobozevva.blog.repository.CommentRepository;
 import ru.practicum.kobozevva.blog.repository.PostRepository;
 import ru.practicum.kobozevva.blog.service.CommentService;
 
-import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly=true)
 public class CommentServiceImpl implements CommentService {
-
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
 
-    public CommentServiceImpl(CommentRepository commentRepository,
-                              PostRepository postRepository) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
-    }
+    private final CommentMapper commentMapper;
 
     @Override
-    public List<Comment> getCommentsByPost(long postId) {
-        ensurePostExists(postId);
-        return commentRepository.findByPostId(postId);
-    }
-
-    @Override
-    public Comment getComment(long postId, long commentId) {
-        ensurePostExists(postId);
-
-        return commentRepository.findById(postId, commentId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Comment not found. postId=" + postId + ", commentId=" + commentId
-                        ));
-    }
-
     @Transactional
-    @Override
-    public Comment createComment(long postId, String text) {
-        ensurePostExists(postId);
+    public CommentDto createComment(Long postId, NewCommentDto newCommentDto) {
+        checkPostExistsById(postId);
 
-        Comment comment = new Comment(
-                null,
-                postId,
-                text,
-                OffsetDateTime.now(),
-                OffsetDateTime.now()
-        );
+        if (!Objects.equals(postId, newCommentDto.getPostId()))
+            throw new IllegalArgumentException("PostId from path doesn't match postId in NewCommentDto");
 
-        return commentRepository.save(comment);
+        Comment comment = commentRepository.save(commentMapper.toEntity(newCommentDto));
+
+        CommentDto commentDto = commentMapper.toDto(comment);
+        log.info("Comment for post with id {} is created: {}", postId, commentDto);
+        return commentDto;
     }
 
+    @Override
+    public CommentDto getCommentById(Long postId, Long commentId) {
+        Comment comment = checkAndGetCommentByPostIdAndId(postId, commentId);
+
+        CommentDto commentDto = commentMapper.toDto(comment);
+        log.info("Comment for post with id {} is requested by id: {}", postId, commentId);
+        return commentDto;
+    }
+
+    @Override
+    public List<CommentDto> findComments(Long postId) {
+        checkPostExistsById(postId);
+
+        List<Comment> comments = commentRepository.findAllByPostId(postId);
+
+        List<CommentDto> commentsDto = commentMapper.toDto(comments);
+        log.info("Comments for post with id {} are requested: {}", postId, commentsDto);
+        return commentsDto;
+    }
+
+    @Override
     @Transactional
-    @Override
-    public Comment updateComment(long postId, long commentId, String text) {
-        ensurePostExists(postId);
+    public CommentDto updateComment(Long postId, Long commentId, UpdateCommentDto updateCommentDto) {
+        Comment comment = checkAndGetCommentByPostIdAndId(postId, commentId);
 
-        Comment existing = commentRepository.findById(postId, commentId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Comment not found. postId=" + postId + ", commentId=" + commentId
-                        ));
+        comment = commentMapper.update(comment, updateCommentDto);
 
-        existing.setText(text);
-        existing.setUpdatedAt(OffsetDateTime.now());
-
-        return commentRepository.update(existing);
+        CommentDto commentDto = commentMapper.toDto(comment);
+        log.info("Comment for post with id {} is updated: {}", postId, commentDto);
+        return commentDto;
     }
 
+    @Override
     @Transactional
-    @Override
-    public void deleteComment(long postId, long commentId) {
-        ensurePostExists(postId);
+    public void deleteCommentById(Long postId, Long commentId) {
+        checkAndGetCommentByPostIdAndId(postId, commentId);
 
-        Comment existing = commentRepository.findById(postId, commentId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Comment not found. postId=" + postId + ", commentId=" + commentId
-                        ));
-
-        commentRepository.delete(existing.getPostId(), existing.getId());
+        commentRepository.deleteById(commentId);
+        log.info("Comment for post with id {} is deleted by id: {}", postId,  commentId);
     }
 
+    private void checkPostExistsById(Long postId) {
+        if (!postRepository.existsById(postId))
+            throw new PostNotFoundException(postId);
+    }
 
-    private void ensurePostExists(long postId) {
-        if (!postRepository.existsById(postId)) {
-            throw new IllegalArgumentException("Post not found: " + postId);
-        }
+    private Comment checkAndGetCommentByPostIdAndId(Long postId, Long commentId) {
+        checkPostExistsById(postId);
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
+
+        if (!Objects.equals(postId, comment.getPostId()))
+            throw new IllegalArgumentException("PostId from path + " + postId + " doesn't match postId in comment " + comment.getPostId());
+
+        return comment;
     }
 }
